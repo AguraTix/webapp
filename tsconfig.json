@@ -1,0 +1,19 @@
+
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "checkJs": false,
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "strict": false, // Disable all strict type-checking rules
+    "skipLibCheck": true // Skip type checking for declaration files
+  },
+  "exclude": ["node_modules"] // Ensure node_modules is excluded, but keep src included
+
+}
