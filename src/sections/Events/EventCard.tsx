@@ -24,8 +24,8 @@ const EventCard: React.FC<EventCardProps> = ({ id, title, date, location, image 
   };
 
   return (
-    <div className="flex flex-row items-center bg-black rounded-2xl border border-[#23232B] shadow-sm overflow-hidden w-auto min-w-[320px] max-w-full p-2 gap-2 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
-      <div className="flex items-center justify-center flex-shrink-0 w-16 h-16 md:w-52 md:h-40 bg-gray-800 rounded-xl">
+    <div className="flex flex-col md:flex-row md:items-center bg-black rounded-2xl border border-[#23232B] shadow-sm overflow-hidden w-auto min-w-[320px] max-w-full p-2 gap-2 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl">
+      <div className="flex items-center justify-center flex-shrink-0 w-full h-32 md:w-52 md:h-40 bg-gray-800 rounded-xl">
         {!imageError && image ? (
           <img 
             src={image} 
