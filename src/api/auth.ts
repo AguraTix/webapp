@@ -37,7 +37,7 @@ export interface AuthResponse {
 
 const API_BASE_URL = `${
   import.meta.env.VITE_API_URL ||
-  "https://agura-ticketing-backend.onrender.com"
+  "https://agurabackend.onrender.com"
 }/api`;
 
 import authConfig, { logAuthDebug } from '../config/auth';
@@ -60,13 +60,15 @@ async function apiRequest<T>(
 
     const response = await fetch(url, config);
     const data = await response.json();
+  
 
     if (!response.ok) {
       return {
         success: false,
-        error: data.message || `HTTP error! status: ${response.status}`,
+        error: data.message||data.error || data.msg|| `HTTP error! status: ${response.status}`,
       };
     }
+    
 
     return {
       success: true,

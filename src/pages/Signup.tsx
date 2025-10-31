@@ -128,29 +128,11 @@ const Signup = () => {
         }, 3000);
       } else {
         // Handle signup error with user-friendly messages
-        console.error("Registration failed:", response.error); // Log actual error for debugging
+        console.log("Registration failed:", response.error); // Log actual error for debugging
         
-        // Determine user-friendly error message
-        let userMessage = "Registration failed. Please try again.";
-        
-        if (response.error) {
-          const errorLower = response.error.toLowerCase();
-          if (errorLower.includes('already exists') || errorLower.includes('already registered') || 
-              errorLower.includes('duplicate') || errorLower.includes('taken')) {
-            userMessage = "An account with this email or phone number already exists.";
-          } else if (errorLower.includes('invalid email') || errorLower.includes('email format')) {
-            userMessage = "Please enter a valid email address.";
-          } else if (errorLower.includes('password') && errorLower.includes('weak')) {
-            userMessage = "Password is too weak. Please use a stronger password.";
-          } else if (errorLower.includes('phone') && errorLower.includes('invalid')) {
-            userMessage = "Please enter a valid phone number.";
-          } else if (errorLower.includes('network') || errorLower.includes('connection')) {
-            userMessage = "Connection error. Please check your internet and try again.";
-          }
-        }
-        
+      
         setErrors({
-          general: userMessage,
+          general: response.error||"Failed to Register User",
         });
       }
     } catch (error) {

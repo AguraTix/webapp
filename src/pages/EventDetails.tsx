@@ -366,7 +366,7 @@ const EventDetails = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-wrap md:flex-nowrap gap-3 items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
                     <h1 className="text-2xl font-bold text-white">
                       {event.title}
@@ -403,7 +403,7 @@ const EventDetails = () => {
                       );
                     })()}
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex  items-center gap-4">
                     <button
                       onClick={() => setEditEventModalOpen(true)}
                       className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-blue-600 rounded-lg hover:bg-blue-700"

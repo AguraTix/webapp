@@ -1,7 +1,7 @@
 
 const API_BASE_URL = `${
   import.meta.env.VITE_API_URL ||
-  "https://agura-ticketing-backend.onrender.com"
+  "https://agurabackend.onrender.com"
 }/api/venues`;
 
 // Section interfaces based on backend structure

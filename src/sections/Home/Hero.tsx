@@ -26,8 +26,8 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className='flex '>
-        <img src="/left.png" alt="" className='translate-x-10 ' />
+      <div className='hidden sm:flex '>
+        <img src="/left.png" alt="" className='translate-x-10  ' />
         <div className="relative">
           <img src="/event1.png" alt="" className="z-10" />
           <div className="flex flex-col gap-2 absolute bottom-4 left-4 z-20 bg-black bg-opacity-60 p-3 rounded">

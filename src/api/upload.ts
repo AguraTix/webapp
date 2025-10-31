@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.REACT_APP_API_URL || "https://agura-ticketing-backend.onrender.com";
+const API_BASE_URL = import.meta.env.REACT_APP_API_URL || "https://agurabackend.onrender.com";
 
 interface ApiResponse<T = unknown> {
   success: boolean;

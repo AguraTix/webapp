@@ -115,24 +115,10 @@ const Login = () => {
         console.error("Login failed:", response.error); // Log actual error for debugging
         
         // Determine user-friendly error message
-        let userMessage = "Login failed. Please try again.";
-        
-        if (response.error) {
-          const errorLower = response.error.toLowerCase();
-          if (errorLower.includes('invalid') || errorLower.includes('incorrect') || 
-              errorLower.includes('wrong') || errorLower.includes('not found')) {
-            userMessage = "Invalid credentials. Please check your email/phone and password.";
-          } else if (errorLower.includes('expired')) {
-            userMessage = "Session expired. Please try logging in again.";
-          } else if (errorLower.includes('blocked') || errorLower.includes('suspended')) {
-            userMessage = "Account temporarily unavailable. Please contact support.";
-          } else if (errorLower.includes('network') || errorLower.includes('connection')) {
-            userMessage = "Connection error. Please check your internet and try again.";
-          }
-        }
+       
         
         setErrors({
-          general: userMessage,
+          general: response.error||"Failed to login",
         });
       }
     } catch (error) {

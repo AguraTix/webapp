@@ -45,7 +45,7 @@ interface FoodOrderListResponse {
 }
 
 const API_BASE_URL = `${
-  import.meta.env.VITE_API_URL || "https://agura-ticketing-backend.onrender.com"
+  import.meta.env.VITE_API_URL || "https://agurabackend.onrender.com"
 }/api`;
 
 
