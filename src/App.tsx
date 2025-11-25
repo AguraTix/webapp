@@ -16,6 +16,7 @@ import Tickets from "./pages/Tickets";
 import Account from "./pages/Account";
 import GoogleCallback from "./pages/GoogleCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminListDashboard from "./pages/adminListDashboard";
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin-list" element={<ProtectedRoute><AdminListDashboard /></ProtectedRoute>} />
     </Routes>
   );
 }
