@@ -5,6 +5,8 @@ import { getAllVenues, venueUtils, type Venue } from "../api/venue";
 import { imageUtils } from "../api/upload";
 import CreateVenueModal from "./CreateVenueModal";
 import CustomDropdown from "./ui/CustomDropdown";
+import CustomTimePicker from "./ui/CustomTimePicker";
+import CustomCalendar from "./ui/CustomCalendar";
 
 interface SimpleCreateEventWizardProps {
   isOpen: boolean;
@@ -130,6 +132,19 @@ const SimpleCreateEventWizard: React.FC<SimpleCreateEventWizardProps> = ({
     }));
   };
 
+  const handleTimeChange=(time:string)=>{
+    setFormData((prev)=>({
+      ...prev,
+      eventTime:time,
+    }))
+  }
+
+  const handleDateChange=(date:string)=>{
+    setFormData((prev)=>({
+      ...prev,
+      eventDate:date,
+    }))
+  }
   const handleVenueSelect = (venue: Venue) => {
     setSelectedVenue(venue);
   };
@@ -703,22 +718,9 @@ const SimpleCreateEventWizard: React.FC<SimpleCreateEventWizardProps> = ({
 
                   {/* Date and Time */}
                   <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="date"
-                      name="eventDate"
-                      value={formData.eventDate}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#23232B] text-white rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
-                      required
-                    />
-                    <input
-                      type="time"
-                      name="eventTime"
-                      value={formData.eventTime}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#23232B] text-white rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                      required
-                    />
+                   <CustomCalendar value={formData.eventDate} onChange={handleDateChange}  />
+                    <CustomTimePicker value={formData.eventTime} onChange={handleTimeChange} />
+                    
                   </div>
 
                   {/* Artists */}

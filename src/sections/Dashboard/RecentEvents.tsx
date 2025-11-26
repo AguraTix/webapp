@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { getAllEvents, eventUtils, type Event } from "../../api/event";
+import AuthHelper from "../../utils/AuthHelper";
 
 interface RecentEventsProps {
   onCreateEvent?: () => void;
@@ -20,8 +21,21 @@ const RecentEvents = ({ onCreateEvent, refreshKey }: RecentEventsProps) => {
         const response = await getAllEvents();
 
         if (response.success && response.data) {
+          let eventsData = response.data.events || [];
+          
+          // Filter events based on user role
+          if (AuthHelper.isAdmin()) {
+            const currentUserId = AuthHelper.getUserId();
+            eventsData = eventsData.filter(
+              (event) => 
+                // Check both admin_id and user_id, and use loose equality
+                event.admin_id == currentUserId || 
+                event.user_id == currentUserId
+            );
+          }
+          
           // Get the most recent 4 events, sorted by creation date
-          const recentEvents = response.data.events
+          const recentEvents = eventsData
             .sort(
               (a, b) =>
                 new Date(b.created_at || b.date).getTime() -

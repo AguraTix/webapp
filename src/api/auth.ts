@@ -184,25 +184,72 @@ export async function changePassword(
 
 // Forgot password function
 export async function forgotPassword(
-  email: string
+  identifier: string
 ): Promise<ApiResponse<void>> {
   return apiRequest<void>("/password-reset/request", {
     method: "POST",
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ identifier }),
+  });
+}
+
+// Verify reset code
+export async function verifyResetCode(
+  identifier: string,
+  code: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/password-reset/verify", {
+    method: "POST",
+    body: JSON.stringify({
+      identifier,
+      verification_code: code,
+    }),
   });
 }
 
 // Reset password function
 export async function resetPassword(
-  token: string,
+  identifier: string,
+  code: string,
   newPassword: string
 ): Promise<ApiResponse<void>> {
-  return apiRequest<void>("/password-reset/verify", {
+  return apiRequest<void>("/password-reset/reset", {
     method: "POST",
     body: JSON.stringify({
-      token,
+      identifier,
+      verification_code: code,
       new_password: newPassword,
     }),
+  });
+}
+
+// Send verification code
+export async function sendVerificationCode(
+  email: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/users/email/verify/send", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+// Confirm verification code
+export async function confirmVerificationCode(
+  email: string,
+  code: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/users/email/verify/confirm", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+// Resend verification code
+export async function resendVerificationCode(
+  email: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/users/email/verify/resend", {
+    method: "POST",
+    body: JSON.stringify({ email }),
   });
 }
 

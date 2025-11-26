@@ -1,17 +1,27 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { LayoutGrid, CalendarDays, Ticket, User, LogOut } from 'lucide-react';
+import { LayoutGrid, CalendarDays, Ticket, User, LogOut, ShieldUser, Users } from 'lucide-react';
 import { logout, authUtils } from '../../api/auth';
 
-const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: <LayoutGrid className="w-5 h-5" /> },
-    { label: 'Events', path: '/events-dashboard', icon: <CalendarDays className="w-5 h-5" /> },
-    { label: 'Tickets', path: '/tickets', icon: <Ticket className="w-5 h-5" /> },
-    { label: 'Account', path: '/account', icon: <User className="w-5 h-5" /> },
+const allNavItems = [
+    { label: 'Dashboard', path: '/dashboard', icon: <LayoutGrid className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
+    { label: 'Events', path: '/events-dashboard', icon: <CalendarDays className="w-5 h-5" />, rolesAllowed: ['admin', 'super admin'] },
+    { label: 'Tickets', path: '/tickets', icon: <Ticket className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
+    { label: 'Admin List', path: '/admin-list', icon: <Users className="w-5 h-5" />, rolesAllowed: ['superadmin'] },
+    { label: 'Account', path: '/account', icon: <User className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
 ];
 
 const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
+
+    // Get user profile and role
+    const userProfile = authUtils.getUserProfile();
+    const userRole = userProfile?.role?.toLowerCase() || 'admin';
+
+    // Filter nav items based on user role
+    const navItems = allNavItems.filter(item => 
+        item.rolesAllowed.includes(userRole)
+    );
 
     const handleLogout = async () => {
         try {
