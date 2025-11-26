@@ -15,20 +15,12 @@ const ForgotPassword = () => {
     setError(null);
     setSuccess(null);
 
-    if (!identifier.trim()) {
-      setError('Please enter your email address.');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const resp = await forgotPassword(identifier.trim());
+      const resp = await forgotPassword(identifier);
       if (resp.success) {
-        setSuccess('Verification code sent. Please check your email.');
-        // Navigate to verify page with the email in state
-        setTimeout(() => {
-          navigate('/verify-account', { state: { email: identifier.trim() } });
-        }, 1200);
+        setSuccess('Verification code sent successfully.');
+        setTimeout(() => navigate('/verify-account', { state: { email: identifier } }), 1200);
       } else {
         setError(resp.error || 'Failed to send verification code.');
       }
@@ -62,6 +54,7 @@ const ForgotPassword = () => {
         <button
           type="submit"
           disabled={isLoading}
+          onClick={handleSubmit}
           className="bg-primary text-white rounded-full py-3 font-semibold text-lg mt-2 hover:bg-primary/80 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Sending...' : 'Send Verification Code'}

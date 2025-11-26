@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AuthLayout from './AuthLayout';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { verifyResetCode } from '../api/auth';
 
 const VerifyAccount = () => {
   const [codes, setCodes] = useState(['', '', '', '', '']);
@@ -15,7 +16,7 @@ const VerifyAccount = () => {
     setCodes(prev => prev.map((c, i) => (i === idx ? onlyDigits : c)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     const token = codes.join('');
@@ -23,8 +24,24 @@ const VerifyAccount = () => {
       setError('Please enter the full verification code.');
       return;
     }
-    // Proceed to reset password with the token (used as reset token)
-    navigate('/reset-password', { state: { token, email } });
+    
+    if (!email) {
+        setError('Email address is missing. Please go back and try again.');
+        return;
+    }
+
+    // Verify the code with the backend
+    try {
+        const resp = await verifyResetCode(email, token);
+        if (resp.success) {
+             // Proceed to reset password with the token (used as reset token)
+            navigate('/reset-password', { state: { token, email } });
+        } else {
+            setError(resp.error || 'Invalid verification code.');
+        }
+    } catch (err) {
+        setError('Network error. Please try again.');
+    }
   };
 
   return (

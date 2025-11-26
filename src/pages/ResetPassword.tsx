@@ -24,6 +24,10 @@ const ResetPassword = () => {
       setError('Missing verification token. Please restart the reset process.');
       return;
     }
+    if (!email) {
+      setError('Missing email address. Please restart the reset process.');
+      return;
+    }
     if (password.length < 8) {
       setError('Password must be at least 8 characters.');
       return;
@@ -35,7 +39,7 @@ const ResetPassword = () => {
 
     setIsLoading(true);
     try {
-      const resp = await resetPassword(token, password);
+      const resp = await resetPassword(email, token, password);
       if (resp.success) {
         setSuccess('Password reset successful. You can now sign in.');
         setTimeout(() => navigate('/login'), 1200);
