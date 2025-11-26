@@ -19,6 +19,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { getAllEvents, eventUtils, type Event } from "../api/event";
 import { authUtils } from "../api/auth";
+import AuthHelper from "../utils/AuthHelper";
 
 const EventsDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,7 +34,7 @@ const EventsDashboard = () => {
   >("all");
   const [userProfile, setUserProfile] = useState(authUtils.getUserProfile());
   const location = useLocation();
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [eventsPerPage] = useState(8);
@@ -45,19 +46,22 @@ const EventsDashboard = () => {
       const response = await getAllEvents();
       if (response.success && response.data) {
         console.log("Events data received:", response.data.events);
-        // Log the first event to see its structure
-        if (response.data.events && response.data.events.length > 0) {
-          console.log("First event structure:", response.data.events[0]);
-          console.log(
-            "First event event_id:",
-            response.data.events[0].event_id
+
+        let eventsData = response.data.events || [];
+
+        // Filter events based on user role
+        if (AuthHelper.isAdmin()) {
+          const currentUserId = AuthHelper.getUserId();
+          eventsData = eventsData.filter(
+            (event) =>
+              // Check both admin_id and user_id, and use loose equality for string/number mismatch
+              event.admin_id == currentUserId ||
+              event.user_id == currentUserId
           );
-          console.log(
-            "Using getEventId:",
-            eventUtils.getEventId(response.data.events[0])
-          );
+          console.log(`Filtered events for admin ${currentUserId}:`, eventsData);
         }
-        setEvents(response.data.events || []);
+
+        setEvents(eventsData);
       }
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -98,7 +102,7 @@ const EventsDashboard = () => {
     // Calculate pagination
     const totalPages = Math.ceil(filtered.length / eventsPerPage);
     setTotalPages(totalPages);
-    
+
     // Reset to first page if current page is out of bounds
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
@@ -173,11 +177,10 @@ const EventsDashboard = () => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-6 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${
-                      isActive
-                        ? "bg-pink-600 text-white"
-                        : "text-white hover:bg-pink-600/20"
-                    }`}
+                    className={`flex items-center gap-3 px-6 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${isActive
+                      ? "bg-pink-600 text-white"
+                      : "text-white hover:bg-pink-600/20"
+                      }`}
                   >
                     {item.icon}
                     {item.label}
@@ -264,9 +267,21 @@ const EventsDashboard = () => {
             {/* Your Events Section */}
             <section className="w-full mb-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg md:text-[16px] font-semibold text-[#CDCDE0]">
-                  Your Events ({filteredEvents.length})
-                </h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg md:text-[16px] font-semibold text-[#CDCDE0]">
+                    {AuthHelper.isSuperAdmin() ? 'All Events' : 'Your Events'} ({filteredEvents.length})
+                  </h3>
+                  {AuthHelper.isAdmin() && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                      Your Events Only
+                    </span>
+                  )}
+                  {AuthHelper.isSuperAdmin() && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-pink-600/20 text-pink-400 border border-pink-500/30">
+                      All Events
+                    </span>
+                  )}
+                </div>
                 {totalPages > 1 && (
                   <div className="text-sm text-gray-400">
                     Page {currentPage} of {totalPages}
@@ -415,7 +430,7 @@ const EventsDashboard = () => {
                     <ChevronLeft className="w-4 h-4" />
                     Previous
                   </button>
-                  
+
                   <div className="flex items-center gap-2">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       let pageNum;
@@ -428,23 +443,22 @@ const EventsDashboard = () => {
                       } else {
                         pageNum = currentPage - 2 + i;
                       }
-                      
+
                       return (
                         <button
                           key={pageNum}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`px-3 py-2 rounded-lg transition-colors ${
-                            currentPage === pageNum
-                              ? 'bg-primary text-white'
-                              : 'bg-[#101010] text-[#CDCDE0] hover:bg-primary/20'
-                          }`}
+                          className={`px-3 py-2 rounded-lg transition-colors ${currentPage === pageNum
+                            ? 'bg-primary text-white'
+                            : 'bg-[#101010] text-[#CDCDE0] hover:bg-primary/20'
+                            }`}
                         >
                           {pageNum}
                         </button>
                       );
                     })}
                   </div>
-                  
+
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
@@ -477,11 +491,11 @@ const EventsDashboard = () => {
           fetchEvents(); // keep immediate refresh for this page list
           try {
             localStorage.setItem('eventsRefreshKey', String(Date.now()));
-          } catch {}
+          } catch { }
           setCreateEventModalOpen(false);
         }}
       />
-      
+
       {/* Debug component - remove in production */}
       {/* <UserDebugInfo /> */}
     </div>

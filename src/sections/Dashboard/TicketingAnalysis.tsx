@@ -28,6 +28,8 @@ import {
   ticketUtils,
   type TicketStatsResponse,
 } from "../../api/ticket";
+import { getAllEvents } from "../../api/event";
+import AuthHelper from "../../utils/AuthHelper";
 
 // Register Chart.js components
 ChartJS.register(
@@ -97,6 +99,33 @@ const TicketingAnalysis = ({
   const [salesData, setSalesData] = useState<TicketSalesData[]>([]);
   const [rawTickets, setRawTickets] = useState<Ticket[]>([]);
   const [chartError, setChartError] = useState<string | null>(null);
+  const [allowedEventIds, setAllowedEventIds] = useState<string[] | null>(null);
+
+  // Fetch allowed event IDs for admin
+  useEffect(() => {
+    const fetchAllowedEvents = async () => {
+      if (AuthHelper.isAdmin()) {
+        const currentUserId = AuthHelper.getUserId();
+        if (currentUserId) {
+          try {
+            const response = await getAllEvents();
+            if (response.success && response.data?.events) {
+              const adminEvents = response.data.events.filter(
+                event => event.admin_id == currentUserId || event.user_id == currentUserId
+              );
+              const ids = adminEvents.map(e => e.event_id || '').filter(id => id !== '');
+              setAllowedEventIds(ids);
+            }
+          } catch (err) {
+            console.error("Error fetching admin events for filtering:", err);
+          }
+        }
+      } else {
+        setAllowedEventIds(null);
+      }
+    };
+    fetchAllowedEvents();
+  }, []);
 
   // Fetch real ticket data
   useEffect(() => {
@@ -113,10 +142,19 @@ const TicketingAnalysis = ({
           tickets = ticketsResponse.data.tickets || [];
         }
 
+        // Filter tickets if we have allowedEventIds
+        if (allowedEventIds !== null) {
+          tickets = tickets.filter(ticket => {
+            const tEventId = ticket.event_id || ticket.Event?.event_id || (ticket as any).eventId;
+            return allowedEventIds.includes(tEventId);
+          });
+        }
+
         setRawTickets(tickets);
 
         if (!propStats) {
-          const statsResponse = await getTicketStats();
+          // Pass allowedEventIds to getTicketStats
+          const statsResponse = await getTicketStats( allowedEventIds);
           if (statsResponse.success && statsResponse.data) {
             setStats(statsResponse.data.stats);
           }
@@ -130,7 +168,8 @@ const TicketingAnalysis = ({
     };
 
     fetchRealData();
-  }, [propStats]);
+    fetchRealData();
+  }, [propStats, allowedEventIds]);
 
   // Clear chart error when filters change
   useEffect(() => {

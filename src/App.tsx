@@ -9,6 +9,8 @@ import Signup from "./pages/Signup";
 import VerifyAccount from "./pages/VerifyAccount";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import SendVerification from "./pages/SendVerification";
+import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
 import EventsDashboard from "./pages/EventsDashboard";
 import SpecificEvent from "./pages/SpecificEvent";
@@ -31,6 +33,9 @@ function App() {
       <Route path="/verify-account" element={<VerifyAccount />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/send-verification" element={<SendVerification />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/auth/google/callback" element={<GoogleCallback />} />
 
       {/* Protected Routes - Authentication required */}

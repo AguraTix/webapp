@@ -22,6 +22,7 @@ export interface Event {
   created_at?: string;
   updated_at?: string;
   admin_id?: string;
+  user_id?: string; // Alternative field for creator ID
   event_image?: string;
   event_images?: string[];
   image_url?: string; // Backend returns image_url

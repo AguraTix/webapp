@@ -9,8 +9,10 @@ export interface Admin{
     name:string,
     phone_number:string,
     role:string,
-    created_at:string,
-    updated_at:string
+    createdAt:string,
+    updated_at:string,
+    expires_at:string,
+    new_password:string
 }
 
 interface ApiResponse<T = unknown> {
@@ -22,7 +24,7 @@ interface ApiResponse<T = unknown> {
 
 interface AdminResponse{
     message:string,
-    admin:Admin[]
+    admins:Admin[]
 }
 
 const getAuth = (): string | null => {
@@ -76,14 +78,13 @@ async function apiRequest<T>(
 
 export async function getAdmins(): Promise<ApiResponse<AdminResponse>> {
     const endpoint = "/users/superadmin/my-admins";
-    console.log(apiRequest<AdminResponse>(endpoint));
     return apiRequest<AdminResponse>(endpoint);
 
   }
 
 
   export async function createAdmin(admin: Admin): Promise<ApiResponse<AdminResponse>> {
-    const endpoint = "/users/superadmin/create-admins";
+    const endpoint = "/users/superadmin/create-admin";
     return apiRequest<AdminResponse>(endpoint, {
       method: "POST",
       body: JSON.stringify(admin),
@@ -93,4 +94,12 @@ export async function getAdmins(): Promise<ApiResponse<AdminResponse>> {
   export async function getAllAdmins(): Promise<ApiResponse<AdminResponse>> {
     const endpoint = "/users/superadmin/all-admins";
     return apiRequest<AdminResponse>(endpoint);
+  }
+
+  export async function UpdateAdmin(id:string,admin:Admin):Promise<ApiResponse<AdminResponse>>{
+    const endpoint = `/users/superadmin/admins/${id}`;
+    return apiRequest<AdminResponse>(endpoint, {
+      method: "PUT",
+      body:JSON.stringify(admin)
+    });
   }

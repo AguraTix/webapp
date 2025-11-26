@@ -41,6 +41,8 @@ import {
 } from "../api/ticket";
 import TicketingAnalysis from "../sections/Dashboard/TicketingAnalysis";
 import CustomDropdown from "../components/ui/CustomDropdown";
+import { getAllEvents } from "../api/event";
+import AuthHelper from "../utils/AuthHelper";
 
 // Default objects to prevent undefined values
 const defaultUser = {
@@ -112,12 +114,12 @@ const mapTicketData = (ticket: unknown): TicketType => {
     },
     ticketCategory: ticket.ticketCategory
       ? {
-          category_id:
-            ticket.ticketCategory.category_id || ticket.ticketCategory.id || "",
-          name: ticket.ticketCategory.name || "",
-          price: ticket.ticketCategory.price || 0,
-          description: ticket.ticketCategory.description || "",
-        }
+        category_id:
+          ticket.ticketCategory.category_id || ticket.ticketCategory.id || "",
+        name: ticket.ticketCategory.name || "",
+        price: ticket.ticketCategory.price || 0,
+        description: ticket.ticketCategory.description || "",
+      }
       : undefined,
   };
 };
@@ -140,8 +142,37 @@ const Tickets = () => {
   const [userProfile] = useState(authUtils.getUserProfile());
   const location = useLocation();
   const [ticketsRefreshKey, setTicketsRefreshKey] = useState(0);
+  const [allowedEventIds, setAllowedEventIds] = useState<string[] | null>(null);
 
-  const isAdmin = ticketUtils.canManageTickets();
+  // Check if user is strictly an Admin (not SuperAdmin)
+  const isStrictAdmin = AuthHelper.isAdmin();
+  const isAdmin = ticketUtils.canManageTickets(); // This might be true for both
+
+  // Fetch allowed event IDs for admin
+  useEffect(() => {
+    const fetchAllowedEvents = async () => {
+      if (isStrictAdmin) {
+        const currentUserId = AuthHelper.getUserId();
+        if (currentUserId) {
+          try {
+            const response = await getAllEvents();
+            if (response.success && response.data?.events) {
+              const adminEvents = response.data.events.filter(
+                event => event.admin_id == currentUserId || event.user_id == currentUserId
+              );
+              const ids = adminEvents.map(e => e.event_id || '').filter(id => id !== '');
+              setAllowedEventIds(ids);
+            }
+          } catch (err) {
+            console.error("Error fetching admin events for filtering:", err);
+          }
+        }
+      } else {
+        setAllowedEventIds(null); // SuperAdmin or User sees all (or handled by backend for User)
+      }
+    };
+    fetchAllowedEvents();
+  }, [isStrictAdmin]);
 
   const navItems = [
     {
@@ -169,15 +200,15 @@ const Tickets = () => {
 
       const params = isAdmin
         ? {
-            limit: itemsPerPage,
-            offset: (currentPage - 1) * itemsPerPage,
-            ...(statusFilter !== "all" && { status: statusFilter }),
-          }
+          limit: itemsPerPage,
+          offset: (currentPage - 1) * itemsPerPage,
+          ...(statusFilter !== "all" && { status: statusFilter }),
+        }
         : {
-            page: currentPage,
-            limit: itemsPerPage,
-            ...(statusFilter !== "all" && { status: statusFilter }),
-          };
+          page: currentPage,
+          limit: itemsPerPage,
+          ...(statusFilter !== "all" && { status: statusFilter }),
+        };
 
       const response = isAdmin
         ? await getAllBookedTickets(params)
@@ -185,24 +216,34 @@ const Tickets = () => {
       console.log(`${isAdmin ? "Admin" : "User"} tickets response:`, response);
 
       if (response.success && response.data) {
-        const rawTickets =
+        let rawTickets =
           response.data.tickets ||
           (Array.isArray(response.data)
             ? response.data
             : response.data.data?.tickets || []);
+
+        // Filter tickets if we have allowedEventIds (Admin role)
+        if (allowedEventIds !== null) {
+          rawTickets = rawTickets.filter(ticket => {
+            const tEventId = ticket.event_id || ticket.Event?.event_id || (ticket as any).eventId;
+            return allowedEventIds.includes(tEventId);
+          });
+        }
+
         const mappedTickets = rawTickets.map(mapTicketData);
 
         setTickets(mappedTickets);
-        setTotalTickets(response.data.total || rawTickets.length);
+        // Update total count based on filtered results
+        setTotalTickets(allowedEventIds !== null ? rawTickets.length : (response.data.total || rawTickets.length));
         setTotalPages(
           Math.ceil(
-            (response.data.total || rawTickets.length) / itemsPerPage
+            (allowedEventIds !== null ? rawTickets.length : (response.data.total || rawTickets.length)) / itemsPerPage
           ) || 1
         );
       } else {
         setError(
           response.error ||
-            `Failed to fetch ${isAdmin ? "admin" : "user"} tickets`
+          `Failed to fetch ${isAdmin ? "admin" : "user"} tickets`
         );
         setTickets([]);
       }
@@ -215,7 +256,7 @@ const Tickets = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, statusFilter, isAdmin, itemsPerPage]);
+  }, [currentPage, statusFilter, isAdmin, itemsPerPage, allowedEventIds]);
 
   // Reset to first page when search or filters change
   useEffect(() => {
@@ -225,19 +266,20 @@ const Tickets = () => {
   const fetchStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
-      const response = await getTicketStats();
+      // Pass allowedEventIds to getTicketStats if set (undefined otherwise)
+      const response = await getTicketStats(undefined, allowedEventIds || undefined);
       setStats(
         response.success && response.data
           ? response.data.stats
           : {
-              total_tickets: 0,
-              sold_tickets: 0,
-              available_tickets: 0,
-              reserved_tickets: 0,
-              total_revenue: 0,
-              tickets_by_event: [],
-              tickets_by_status: [],
-            }
+            total_tickets: 0,
+            sold_tickets: 0,
+            available_tickets: 0,
+            reserved_tickets: 0,
+            total_revenue: 0,
+            tickets_by_event: [],
+            tickets_by_status: [],
+          }
       );
     } catch (error) {
       console.error("Error fetching ticket stats:", error);
@@ -253,7 +295,7 @@ const Tickets = () => {
     } finally {
       setIsLoadingStats(false);
     }
-  }, []);
+  }, [allowedEventIds]);
 
   const fetchRecentBookings = useCallback(async () => {
     try {
@@ -266,11 +308,20 @@ const Tickets = () => {
         : (await import("../api/ticket")).getMyTickets(params);
 
       if (response.success && response.data) {
-        const rawBookings =
+        let rawBookings =
           response.data.tickets ||
           (Array.isArray(response.data)
             ? response.data
             : response.data.data?.tickets || []);
+
+        // Filter bookings if we have allowedEventIds
+        if (allowedEventIds !== null) {
+          rawBookings = rawBookings.filter(ticket => {
+            const tEventId = ticket.event_id || ticket.Event?.event_id || (ticket as any).eventId;
+            return allowedEventIds.includes(tEventId);
+          });
+        }
+
         const mappedBookings = rawBookings
           .map(mapTicketData)
           .sort((a, b) => {
@@ -294,7 +345,7 @@ const Tickets = () => {
     } finally {
       setIsLoadingRecentBookings(false);
     }
-  }, [isAdmin]);
+  }, [isAdmin, allowedEventIds]);
 
   // Listen for tickets refresh broadcasts from other pages/tabs
   useEffect(() => {
@@ -317,7 +368,7 @@ const Tickets = () => {
   const broadcastTicketsRefresh = () => {
     try {
       localStorage.setItem('ticketsRefreshKey', String(Date.now()));
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -428,11 +479,10 @@ const Tickets = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-6 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${
-                    location.pathname === item.path
+                  className={`flex items-center gap-3 px-6 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${location.pathname === item.path
                       ? "bg-pink-600 text-white"
                       : "text-white hover:bg-pink-600/20"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                   {item.label}
@@ -474,7 +524,7 @@ const Tickets = () => {
                   </h2>
                   {isAdmin && (
                     <p className="text-sm text-primary">
-                      Admin Dashboard - Managing All Tickets
+                      {isStrictAdmin ? "Admin Dashboard - Managing Your Event Tickets" : "SuperAdmin Dashboard - Managing All Tickets"}
                     </p>
                   )}
                 </div>
@@ -700,8 +750,8 @@ const Tickets = () => {
                             <p className="text-gray-400 truncate text-xs">
                               {booking.event.date
                                 ? new Date(
-                                    booking.event.date
-                                  ).toLocaleDateString()
+                                  booking.event.date
+                                ).toLocaleDateString()
                                 : ""}
                             </p>
                           </div>
@@ -714,13 +764,13 @@ const Tickets = () => {
                             <span className="text-gray-400 text-xs">
                               {booking.purchase_date
                                 ? new Date(
-                                    booking.purchase_date
-                                  ).toLocaleDateString()
+                                  booking.purchase_date
+                                ).toLocaleDateString()
                                 : booking.created_at
-                                ? new Date(
+                                  ? new Date(
                                     booking.created_at
                                   ).toLocaleDateString()
-                                : "Recent"}
+                                  : "Recent"}
                             </span>
                           </div>
                           <div className="col-span-1">
@@ -784,9 +834,8 @@ const Tickets = () => {
                           <div
                             className="bg-green-500 h-2 rounded-full transition-all duration-300"
                             style={{
-                              width: `${
-                                (event.sold_tickets / maxSales) * 100
-                              }%`,
+                              width: `${(event.sold_tickets / maxSales) * 100
+                                }%`,
                             }}
                           ></div>
                         </div>
@@ -823,7 +872,7 @@ const Tickets = () => {
                         statusFilter === "all"
                           ? "All Status"
                           : statusFilter.charAt(0).toUpperCase() +
-                            statusFilter.slice(1)
+                          statusFilter.slice(1)
                       }
                       onChange={(value) => {
                         const filterValue =
@@ -1177,11 +1226,10 @@ const Tickets = () => {
                             <button
                               key={i}
                               onClick={() => setCurrentPage(i)}
-                              className={`px-3 py-2 rounded transition-colors ${
-                                currentPage === i
+                              className={`px-3 py-2 rounded transition-colors ${currentPage === i
                                   ? "bg-primary text-white"
                                   : "text-gray-400 hover:text-white hover:bg-gray-700"
-                              }`}
+                                }`}
                             >
                               {i}
                             </button>

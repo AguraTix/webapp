@@ -8,6 +8,7 @@ import SimpleCreateEventWizard from "../components/SimpleCreateEventWizard";
 import { LayoutGrid, CalendarDays, Ticket, User, X } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { authUtils, type UserProfile } from "../api/auth";
+import AuthHelper from "../utils/AuthHelper";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -82,11 +83,10 @@ const Dashboard = () => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-6 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${
-                      isActive
+                    className={`flex items-center gap-3 px-6 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${isActive
                         ? "bg-pink-600 text-white"
                         : "text-white hover:bg-pink-600/20"
-                    }`}
+                      }`}
                   >
                     {item.icon}
                     {item.label}
@@ -127,6 +127,7 @@ const Dashboard = () => {
         <main className="flex-1 py-8 md:py-10 w-full overflow-x-hidden">
           <div className="max-w-6xl mx-auto w-full px-4 md:px-8">
             <Header userProfile={userProfile} />
+          
             <StatsRow refreshKey={eventsRefreshKey} />
             <RecentEvents
               onCreateEvent={() => setCreateEventModalOpen(true)}
@@ -148,7 +149,7 @@ const Dashboard = () => {
           // Broadcast refresh to other tabs/pages
           try {
             localStorage.setItem('eventsRefreshKey', String(Date.now()));
-          } catch {}
+          } catch { }
         }}
       />
     </div>

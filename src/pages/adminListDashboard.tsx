@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit, Trash2, Shield, User as UserIcon } from 'lucide-react';
 import Table, { type TableColumn } from '../components/ui/Table';
 import Sidebar from '../sections/Dashboard/Sidebar';
 import CustomDropdown from '../components/ui/CustomDropdown';
-import { getAdmins, type Admin as ApiAdmin } from '../api/admin';
+import { type Admin as ApiAdmin, getAllAdmins } from '../api/admin';
+import CreateAdminModal from '../components/CreateAdminModal';
+import EditAdminModal from '../components/EditAdminModal';
 
 // Use API Admin type
 type Admin = ApiAdmin;
 
-const roleOptions = ['All Roles', 'Super Admins', 'Admins'];
+const roleOptions = ['All Roles', 'Admins'];
 
 export default function AdminListDashboard() {
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -16,25 +18,42 @@ export default function AdminListDashboard() {
   const [roleFilterDisplay, setRoleFilterDisplay] = useState('All Roles');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+
+  const fetchAdmins = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const response = await getAllAdmins(); // Using getAllAdmins
+    console.log("the admins are", response)
+
+    if (response.success && response.data) {
+      setAdmins(response.data.admins || []);
+    } else {
+      console.log(response.error)
+      setError(response.error || 'Failed to fetch admins');
+    }
+
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    const fetchAdmins = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await getAdmins();
-      
-      if (response.success && response.data) {
-        setAdmins(response.data.admin || []);
-      } else {
-        setError(response.error || 'Failed to fetch admins');
-      }
-      
-      setIsLoading(false);
-    };
-
     fetchAdmins();
-  }, []);
+  }, [fetchAdmins]);
+  console.log(admins)
+
+  const handleAdminCreated = () => {
+    fetchAdmins();
+    setIsCreateModalOpen(false);
+  };
+
+  const handleAdminUpdated = () => {
+    fetchAdmins();
+    setIsEditModalOpen(false);
+    setSelectedAdmin(null);
+  };
 
   // Map display value to filter value
   const getRoleFilter = (display: string): 'all' | 'admin' | 'superadmin' => {
@@ -52,17 +71,26 @@ export default function AdminListDashboard() {
       admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.phone_number.includes(searchQuery);
 
-    const matchesRole = roleFilter === 'all' || admin.role === roleFilter;
+    const matchesRole = roleFilter === 'all' || admin.role.toLowerCase() === roleFilter;
 
     return matchesSearch && matchesRole;
   });
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    if (!dateString) return 'N/A';
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   const columns: TableColumn<Admin>[] = [
@@ -95,39 +123,33 @@ export default function AdminListDashboard() {
       sortable: true,
       render: (admin) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-            admin.role === 'superadmin'
-              ? 'bg-pink-600/20 text-pink-400 border border-pink-500/30'
-              : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-          }`}
+          className={`inline  flex item-center  justify-center  p-1 rounded-full text-xs font-semibold ${admin.role.toLowerCase() === 'superadmin'
+            ? 'bg-pink-600/20 text-pink-400 border border-pink-500/30 '
+            : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+            } `}
         >
-          {admin.role === 'superadmin' ? (
-            <Shield className="w-3 h-3" />
-          ) : (
-            <UserIcon className="w-3 h-3" />
-          )}
+
           {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
         </span>
       ),
     },
     {
-      key: 'created_at',
+      key: 'createdAt',
       label: 'Created',
       sortable: true,
       render: (admin) => (
-        <span className="text-[#CDCDE0]">{formatDate(admin.created_at)}</span>
+        <span className="text-[#CDCDE0]">{formatDate(admin.createdAt)}</span>
       ),
     },
   ];
 
   const handleEdit = (admin: Admin) => {
-    console.log('Edit admin:', admin);
-    // TODO: Open edit modal
+    setSelectedAdmin(admin);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = (admin: Admin) => {
     console.log('Delete admin:', admin);
-    // TODO: Show confirmation dialog
   };
 
   return (
@@ -145,7 +167,10 @@ export default function AdminListDashboard() {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
                 <h1 className="text-3xl font-bold text-white">Admin Management</h1>
-                <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-pink-600 transition-all font-medium">
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-pink-600 transition-all font-medium"
+                >
                   <Plus className="w-5 h-5" />
                   Add Admin
                 </button>
@@ -176,19 +201,7 @@ export default function AdminListDashboard() {
                 <span className="text-3xl font-bold text-white">{admins.length}</span>
               </div>
 
-              <div className="bg-[#101010] rounded-lg p-6 shadow-lg border border-[#23232B]">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-pink-600/20 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-pink-500" />
-                  </div>
-                  <span className="text-sm text-[#CDCDE0] font-medium">
-                    Super Admins
-                  </span>
-                </div>
-                <span className="text-3xl font-bold text-white">
-                  {admins.filter((a) => a.role === 'superadmin').length}
-                </span>
-              </div>
+            
 
               <div className="bg-[#101010] rounded-lg p-6 shadow-lg border border-[#23232B]">
                 <div className="flex items-center gap-3 mb-2">
@@ -198,7 +211,7 @@ export default function AdminListDashboard() {
                   <span className="text-sm text-[#CDCDE0] font-medium">Admins</span>
                 </div>
                 <span className="text-3xl font-bold text-white">
-                  {admins.filter((a) => a.role === 'admin').length}
+                  {admins.filter((a) => a.role.toLowerCase() === 'admin').length}
                 </span>
               </div>
             </div>
@@ -268,6 +281,24 @@ export default function AdminListDashboard() {
           </div>
         </main>
       </div>
+
+      {/* Create Admin Modal */}
+      <CreateAdminModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onAdminCreated={handleAdminCreated}
+      />
+
+      {/* Edit Admin Modal */}
+      <EditAdminModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedAdmin(null);
+        }}
+        onAdminUpdated={handleAdminUpdated}
+        admin={selectedAdmin}
+      />
     </div>
   );
 }

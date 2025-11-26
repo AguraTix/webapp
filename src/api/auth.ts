@@ -206,6 +206,37 @@ export async function resetPassword(
   });
 }
 
+// Send verification code
+export async function sendVerificationCode(
+  email: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/users/email/verify/send", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+// Confirm verification code
+export async function confirmVerificationCode(
+  email: string,
+  code: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/users/email/verify/confirm", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+// Resend verification code
+export async function resendVerificationCode(
+  email: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>("/users/email/verify/resend", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
 // Utility functions for token management
 export const authUtils = {
   saveAuthData: (authResponse: AuthResponse) => {
