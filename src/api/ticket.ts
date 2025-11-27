@@ -21,6 +21,8 @@ export interface Ticket {
   createdAt?: string;
   updatedAt?: string;
   qrCodeUrl?: string;
+  seatNumber?: string;
+  sectionName?: string;
   // Related data from backend
   event?: {
     event_id: string;
@@ -409,7 +411,7 @@ export async function getTicketStats(
       return groups;
     }, {});
 
-    const tickets_by_event = Object.values(eventGroups);
+    const tickets_by_event = Object.values(eventGroups) as any[];
 
     // Group by status
     const statusGroups = [

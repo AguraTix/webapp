@@ -922,11 +922,11 @@ const SimpleCreateEventWizard: React.FC<SimpleCreateEventWizardProps> = ({
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex justify-between pt-4">
+                  <div className="flex gap-5 md:gap-0 justify-between pt-4">
                     <button
                       type="button"
                       onClick={goBackToVenueStep}
-                      className="flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                      className="flex  items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Back to Venue
@@ -934,7 +934,7 @@ const SimpleCreateEventWizard: React.FC<SimpleCreateEventWizardProps> = ({
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-primary text-white rounded-md px-6 py-3 font-semibold hover:bg-primary/80 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-primary  text-white rounded-md px-6 py-3 font-semibold hover:bg-primary/80 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? "Creating Event..." : "Create Event"}
                     </button>

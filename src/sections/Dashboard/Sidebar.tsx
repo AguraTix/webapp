@@ -1,71 +1,62 @@
-import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { LayoutGrid, CalendarDays, Ticket, User, LogOut, Users } from 'lucide-react';
-import { logout, authUtils } from '../../api/auth';
-
-const allNavItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: <LayoutGrid className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
-    { label: 'Events', path: '/events-dashboard', icon: <CalendarDays className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
-    { label: 'Tickets', path: '/tickets', icon: <Ticket className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
-    { label: 'Admin List', path: '/admin-list', icon: <Users className="w-5 h-5" />, rolesAllowed: ['superadmin'] },
-    { label: 'Account', path: '/account', icon: <User className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
-];
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { authUtils, logout } from "../../api/auth";
+import { allNavItems } from "../../utils/navigation";
+import { LogOut } from "lucide-react";
 
 const Sidebar = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    // Get user profile and role
-    const userProfile = authUtils.getUserProfile();
-    const userRole = userProfile?.role?.toLowerCase() || 'admin';
+  const userProfile = authUtils.getUserProfile();
+  const userRole = userProfile?.role?.toLowerCase() || 'admin';
 
-    // Filter nav items based on user role
-    const navItems = allNavItems.filter(item => 
-        item.rolesAllowed.includes(userRole)
-    );
+  const navItems = allNavItems.filter(item => 
+    item.rolesAllowed.includes(userRole)
+  );
 
-    const handleLogout = async () => {
-        try {
-            await logout();
-        } finally {
-            authUtils.clearAuthData();
-            navigate('/login', { replace: true });
-        }
-    };
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      authUtils.clearAuthData();
+      navigate('/login', { replace: true });
+    }
+  };
 
-    return (
-        <aside className="hidden md:block fixed top-0 left-0 w-80 h-screen z-30 bg-black border-r border-[#23232B] py-8 px-4">
-            <div className="flex px-2 mb-10 ml-6">
-                <span className="items-center text-xl font-bold text-pink-600">Agura Ticketing</span>
-            </div>
+  return (
+    <aside className="hidden md:block fixed top-0 left-0 w-80 h-screen z-30 bg-black border-r border-[#23232B] py-8 px-4">
+      <div className="flex px-2 mb-10 ml-6">
+        <span className="items-center text-xl font-bold text-pink-600">Agura Ticketing</span>
+      </div>
 
-            <nav className="flex flex-col items-center gap-5 py-7">
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path || location.pathname.startsWith(item.path);
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-lg font-semibold  transition-all duration-200  hover:bg-pink-600/80  ${isActive ? 'bg-pink-600 text-white' : 'text-white/80'} w-56 text-white text-lg`}
-                        >
-                            {item.icon}
-                            {item.label}
-                        </Link>
-                    );
-                })}
-            </nav>
+      <nav className="flex flex-col items-center gap-5 py-7">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path);
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg font-semibold transition-all duration-200 hover:bg-pink-600/80 ${isActive ? 'bg-pink-600 text-white' : 'text-white/80'} w-56 text-white text-lg`}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
 
-            {/* Logout button pinned to bottom */}
-            <div className="absolute bottom-6 left-0 w-full px-4">
-                <button
-                    onClick={handleLogout}
-                    className="mx-auto flex items-center justify-center gap-2 w-56 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                >
-                    <LogOut className="w-5 h-5" />
-                    Logout
-                </button>
-            </div>
-        </aside>
-    );
+      {/* Logout button pinned to bottom */}
+      <div className="absolute bottom-6 left-0 w-full px-4">
+        <button
+          onClick={handleLogout}
+          className="mx-auto flex items-center justify-center gap-2 w-56 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          Logout
+        </button>
+      </div>
+    </aside>
+  );
 };
 
 export default Sidebar;

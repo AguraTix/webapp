@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit, Trash2, Shield, User as UserIcon } from 'lucide-react';
 import Table, { type TableColumn } from '../components/ui/Table';
-import Sidebar from '../sections/Dashboard/Sidebar';
+import DashboardLayout from '../components/DashboardLayout';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import { type Admin as ApiAdmin, getAllAdmins } from '../api/admin';
 import CreateAdminModal from '../components/CreateAdminModal';
@@ -26,7 +26,7 @@ export default function AdminListDashboard() {
     setIsLoading(true);
     setError(null);
 
-    const response = await getAllAdmins(); // Using getAllAdmins
+    const response = await getAllAdmins();
     console.log("the admins are", response)
 
     if (response.success && response.data) {
@@ -42,6 +42,7 @@ export default function AdminListDashboard() {
   useEffect(() => {
     fetchAdmins();
   }, [fetchAdmins]);
+  
   console.log(admins)
 
   const handleAdminCreated = () => {
@@ -123,12 +124,12 @@ export default function AdminListDashboard() {
       sortable: true,
       render: (admin) => (
         <span
-          className={`inline  flex item-center  justify-center  p-1 rounded-full text-xs font-semibold ${admin.role.toLowerCase() === 'superadmin'
-            ? 'bg-pink-600/20 text-pink-400 border border-pink-500/30 '
-            : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-            } `}
+          className={`inline flex item-center justify-center p-1 rounded-full text-xs font-semibold ${
+            admin.role.toLowerCase() === 'superadmin'
+              ? 'bg-pink-600/20 text-pink-400 border border-pink-500/30'
+              : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+          }`}
         >
-
           {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
         </span>
       ),
@@ -153,133 +154,121 @@ export default function AdminListDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-black">
-      {/* Sidebar */}
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 md:pl-80">
-        <main className="py-8 md:py-10 w-full">
-          <div className="max-w-7xl mx-auto px-4 md:px-8">
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <h1 className="text-3xl font-bold text-white">Admin Management</h1>
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-pink-600 transition-all font-medium"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Admin
-                </button>
-              </div>
-              <p className="text-[#CDCDE0]">
-                Manage system administrators and their roles
-              </p>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-600/10 border border-red-600/30 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-[#101010] rounded-lg p-6 shadow-lg border border-[#23232B]">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-pink-600/20 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-pink-500" />
-                  </div>
-                  <span className="text-sm text-[#CDCDE0] font-medium">
-                    Total Admins
-                  </span>
-                </div>
-                <span className="text-3xl font-bold text-white">{admins.length}</span>
-              </div>
-
-            
-
-              <div className="bg-[#101010] rounded-lg p-6 shadow-lg border border-[#23232B]">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center">
-                    <UserIcon className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <span className="text-sm text-[#CDCDE0] font-medium">Admins</span>
-                </div>
-                <span className="text-3xl font-bold text-white">
-                  {admins.filter((a) => a.role.toLowerCase() === 'admin').length}
-                </span>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-[#101010] rounded-lg p-6 mb-6 shadow-lg border border-[#23232B]">
-              <div className="flex flex-col md:flex-row gap-4">
-                {/* Search */}
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#CDCDE0]" />
-                    <input
-                      type="text"
-                      placeholder="Search by name, email, or phone..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-[#23232B] text-white rounded-md pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all placeholder-gray-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Role Filter with CustomDropdown */}
-                <div className="md:w-64">
-                  <CustomDropdown
-                    options={roleOptions}
-                    value={roleFilterDisplay}
-                    onChange={(value) => setRoleFilterDisplay(value)}
-                    placeholder="Filter by role"
-                  />
-                </div>
-              </div>
-
-              {/* Results count */}
-              <div className="mt-4 pt-4 border-t border-[#23232B]">
-                <p className="text-sm text-[#CDCDE0]">
-                  Showing <span className="text-white font-semibold">{filteredAdmins.length}</span>{' '}
-                  of <span className="text-white font-semibold">{admins.length}</span> admins
-                </p>
-              </div>
-            </div>
-
-            {/* Table */}
-            <Table
-              columns={columns}
-              data={filteredAdmins}
-              isLoading={isLoading}
-              emptyMessage="No admins found"
-              actions={(admin) => (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEdit(admin)}
-                    className="p-2 hover:bg-blue-600/20 rounded-lg transition-colors group"
-                    title="Edit"
-                  >
-                    <Edit className="w-4 h-4 text-[#CDCDE0] group-hover:text-blue-400" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(admin)}
-                    className="p-2 hover:bg-red-600/20 rounded-lg transition-colors group"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4 text-[#CDCDE0] group-hover:text-red-400" />
-                  </button>
-                </div>
-              )}
-            />
+    <DashboardLayout>
+      <div className="w-full">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-white">Admin Management</h1>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-pink-600 transition-all font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              Add Admin
+            </button>
           </div>
-        </main>
+          <p className="text-[#CDCDE0]">
+            Manage system administrators and their roles
+          </p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-600/10 border border-red-600/30 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-[#101010] rounded-lg p-6 shadow-lg border border-[#23232B]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-pink-600/20 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-pink-500" />
+              </div>
+              <span className="text-sm text-[#CDCDE0] font-medium">
+                Total Admins
+              </span>
+            </div>
+            <span className="text-3xl font-bold text-white">{admins.length}</span>
+          </div>
+
+          <div className="bg-[#101010] rounded-lg p-6 shadow-lg border border-[#23232B]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center">
+                <UserIcon className="w-5 h-5 text-blue-500" />
+              </div>
+              <span className="text-sm text-[#CDCDE0] font-medium">Admins</span>
+            </div>
+            <span className="text-3xl font-bold text-white">
+              {admins.filter((a) => a.role.toLowerCase() === 'admin').length}
+            </span>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-[#101010] rounded-lg p-6 mb-6 shadow-lg border border-[#23232B]">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#CDCDE0]" />
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#23232B] text-white rounded-md pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all placeholder-gray-500"
+                />
+              </div>
+            </div>
+
+            {/* Role Filter with CustomDropdown */}
+            <div className="md:w-64">
+              <CustomDropdown
+                options={roleOptions}
+                value={roleFilterDisplay}
+                onChange={(value) => setRoleFilterDisplay(value)}
+                placeholder="Filter by role"
+              />
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mt-4 pt-4 border-t border-[#23232B]">
+            <p className="text-sm text-[#CDCDE0]">
+              Showing <span className="text-white font-semibold">{filteredAdmins.length}</span>{' '}
+              of <span className="text-white font-semibold">{admins.length}</span> admins
+            </p>
+          </div>
+        </div>
+
+        {/* Table */}
+        <Table
+          columns={columns}
+          data={filteredAdmins}
+          isLoading={isLoading}
+          emptyMessage="No admins found"
+          actions={(admin) => (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleEdit(admin)}
+                className="p-2 hover:bg-blue-600/20 rounded-lg transition-colors group"
+                title="Edit"
+              >
+                <Edit className="w-4 h-4 text-[#CDCDE0] group-hover:text-blue-400" />
+              </button>
+              <button
+                onClick={() => handleDelete(admin)}
+                className="p-2 hover:bg-red-600/20 rounded-lg transition-colors group"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4 text-[#CDCDE0] group-hover:text-red-400" />
+              </button>
+            </div>
+          )}
+        />
       </div>
 
       {/* Create Admin Modal */}
@@ -299,6 +288,6 @@ export default function AdminListDashboard() {
         onAdminUpdated={handleAdminUpdated}
         admin={selectedAdmin}
       />
-    </div>
+    </DashboardLayout>
   );
 }

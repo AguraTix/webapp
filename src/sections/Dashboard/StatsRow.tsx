@@ -111,7 +111,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ refreshKey = 0 }) => {
 
         // Fetch Ticket Stats
         // Pass allowedEventIds to getTicketStats if we are an admin
-        const ticketResponse = await getTicketStats(undefined, allowedEventIds);
+        const ticketResponse = await getTicketStats( allowedEventIds);
         
         if (ticketResponse.success && ticketResponse.data) {
           const stats = ticketResponse.data.stats;
@@ -160,7 +160,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ refreshKey = 0 }) => {
   ];
 
   return (
-    <div className="flex gap-4 pb-2 mb-8 overflow-x-auto">
+    <div className="flex  gap-4 pb-2 mb-8 overflow-x-auto">
       {updatedStats.map((stat, idx) => (
             <div key={idx} className="relative flex flex-col gap-3 bg-[#101010] rounded-lg p-5 shadow-lg min-w-[260px] max-w-xs">
                 <div className="flex items-center justify-between">
