@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import  { useState, useEffect, useCallback } from "react";
 import Sidebar from "../sections/Dashboard/Sidebar";
 import Header from "../sections/Dashboard/Header";
 import StatsRow from "../sections/Dashboard/StatsRow";
@@ -59,9 +59,13 @@ const EventsDashboard = () => {
               event.user_id == currentUserId
           );
           console.log(`Filtered events for admin ${currentUserId}:`, eventsData);
+          setEvents(eventsData);
+
+        }
+        else {
+          setEvents(eventsData);
         }
 
-        setEvents(eventsData);
       }
     } catch (error) {
       console.error("Error fetching events:", error);
