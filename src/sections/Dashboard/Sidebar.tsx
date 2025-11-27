@@ -1,10 +1,10 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { LayoutGrid, CalendarDays, Ticket, User, LogOut, ShieldUser, Users } from 'lucide-react';
+import { LayoutGrid, CalendarDays, Ticket, User, LogOut, Users } from 'lucide-react';
 import { logout, authUtils } from '../../api/auth';
 
 const allNavItems = [
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutGrid className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
-    { label: 'Events', path: '/events-dashboard', icon: <CalendarDays className="w-5 h-5" />, rolesAllowed: ['admin', 'super admin'] },
+    { label: 'Events', path: '/events-dashboard', icon: <CalendarDays className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
     { label: 'Tickets', path: '/tickets', icon: <Ticket className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
     { label: 'Admin List', path: '/admin-list', icon: <Users className="w-5 h-5" />, rolesAllowed: ['superadmin'] },
     { label: 'Account', path: '/account', icon: <User className="w-5 h-5" />, rolesAllowed: ['admin', 'superadmin'] },
